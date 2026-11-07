@@ -1,6 +1,7 @@
 package com.tecsup.smartphones.ui.lista
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tecsup.smartphones.AppContainer
 import com.tecsup.smartphones.domain.model.Item
@@ -41,7 +43,8 @@ import com.tecsup.smartphones.ui.components.ErrorView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListaScreen() {
+fun ListaScreen(
+    onSmartphoneClick: (Int) -> Unit) {
 
 
     val factory = remember {
@@ -53,7 +56,7 @@ fun ListaScreen() {
     )
 
 
-    val uiState by listaViewModel.uiState.collectAsState()
+    val uiState by listaViewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -113,7 +116,10 @@ fun ListaScreen() {
                             ) { smartphone ->
 
                                 SmartphoneCard(
-                                    smartphone = smartphone
+                                    smartphone = smartphone,
+                                    onClick = {
+                                        onSmartphoneClick(smartphone.id)
+                                    }
                                 )
                             }
                         }
@@ -125,10 +131,13 @@ fun ListaScreen() {
 }
 
 @Composable
-fun SmartphoneCard(smartphone: Item) {
+fun SmartphoneCard(
+    smartphone: Item,
+    onClick: () -> Unit
+    )  {
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 3.dp

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.tecsup.smartphones.ui.lista.ListaScreen
+import com.tecsup.smartphones.ui.navigation.AppNav
 import com.tecsup.smartphones.ui.theme.CatalogoSmartphonesTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,7 +23,7 @@ class MainActivity : ComponentActivity() {
             CatalogoSmartphonesTheme {
                 setContent {
                     CatalogoSmartphonesTheme {
-                        ListaScreen()
+                        AppNav()
                     }
                 }
             }

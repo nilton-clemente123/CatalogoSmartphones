@@ -78,14 +78,17 @@ class ItemRepositoryImpl(
         _favoritos.value = emptyList()
     }
 
-    // Conversión de ProductDto a nuestro modelo Item
     private fun ProductDto.toItem(): Item {
         return Item(
             id = id,
             titulo = title,
             subtitulo = description,
             imagenUrl = thumbnail,
-            esFavorito = false
+            esFavorito = false,
+            precio = price,
+            marca = brand,
+            calificacion = rating,
+            stock = stock
         )
     }
 }
