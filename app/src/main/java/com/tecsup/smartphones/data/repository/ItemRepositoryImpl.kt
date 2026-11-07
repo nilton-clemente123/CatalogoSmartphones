@@ -1,38 +1,52 @@
 package com.tecsup.smartphones.data.repository
 
 import ItemRepository
+import com.tecsup.smartphones.data.local.ItemDao
+import com.tecsup.smartphones.data.mapper.toDomain
+import com.tecsup.smartphones.data.mapper.toEntity
 import com.tecsup.smartphones.data.remote.ApiService
-import com.tecsup.smartphones.data.remote.dto.ProductDto
 import com.tecsup.smartphones.domain.model.Item
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+
 
 class ItemRepositoryImpl(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val itemDao: ItemDao
 ) : ItemRepository {
 
-    private val _items = MutableStateFlow<List<Item>>(emptyList())
-    override val items: Flow<List<Item>> = _items.asStateFlow()
+    // Los listados ahora se obtienen desde Room.
+    override val items: Flow<List<Item>> =
+        itemDao.todos().map { entidades ->
+            entidades.map { it.toDomain() }
+        }
 
-    private val _favoritos = MutableStateFlow<List<Item>>(emptyList())
-    override val favoritos: Flow<List<Item>> = _favoritos.asStateFlow()
+    override val favoritos: Flow<List<Item>> =
+        itemDao.favoritos().map { entidades ->
+            entidades.map { it.toDomain() }
+        }
 
+    // Obtiene los smartphones de la API y los guarda en Room.
     override suspend fun refrescar(): Result<Int> {
         return try {
-            // Solicitar los smartphones a DummyJSON
+            // Conservamos los favoritos actuales.
+            val idsFavoritos = itemDao.idsFavoritos().toSet()
+
+            // Consultamos la API.
             val respuesta = apiService.obtenerSmartphones()
 
-            // Convertir los DTO recibidos en modelos de dominio
-            val smartphones = respuesta.products.map { producto ->
-                producto.toItem()
+            // Convertimos los DTO en entidades.
+            val entidades = respuesta.products.map { producto ->
+                producto.toEntity(
+                    esFavorito = producto.id in idsFavoritos
+                )
             }
 
-            // Guardar temporalmente los resultados en memoria
-            _items.value = smartphones
+            // Guardamos los resultados en la base de datos.
+            itemDao.guardarTodos(entidades)
 
-            Result.success(smartphones.size)
+            Result.success(entidades.size)
 
         } catch (e: CancellationException) {
             throw e
@@ -41,10 +55,18 @@ class ItemRepositoryImpl(
         }
     }
 
+    // Obtiene el detalle desde la API y también lo almacena en Room.
     override suspend fun obtenerDetalle(id: Int): Result<Item> {
         return try {
             val producto = apiService.obtenerDetalle(id)
-            Result.success(producto.toItem())
+
+            val esFavorito = id in itemDao.idsFavoritos().toSet()
+
+            val entidad = producto.toEntity(esFavorito)
+            itemDao.guardarTodos(listOf(entidad))
+
+            Result.success(entidad.toDomain())
+
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -53,42 +75,18 @@ class ItemRepositoryImpl(
     }
 
     override suspend fun alternarFavorito(id: Int) {
-        val actualizados = _items.value.map { item ->
-            if (item.id == id) {
-                item.copy(esFavorito = !item.esFavorito)
-            } else {
-                item
-            }
-        }
-
-        _items.value = actualizados
-        _favoritos.value = actualizados.filter { it.esFavorito }
+        itemDao.alternarFavorito(id)
     }
 
     override suspend fun cantidadGuardada(): Int {
-        return _items.value.size
+        return itemDao.contar()
     }
 
     override suspend fun cantidadFavoritos(): Int {
-        return _favoritos.value.size
+        return itemDao.contarFavoritos()
     }
 
     override suspend fun limpiarCache() {
-        _items.value = emptyList()
-        _favoritos.value = emptyList()
-    }
-
-    private fun ProductDto.toItem(): Item {
-        return Item(
-            id = id,
-            titulo = title,
-            subtitulo = description,
-            imagenUrl = thumbnail,
-            esFavorito = false,
-            precio = price,
-            marca = brand,
-            calificacion = rating,
-            stock = stock
-        )
+        itemDao.borrarTodo()
     }
 }
