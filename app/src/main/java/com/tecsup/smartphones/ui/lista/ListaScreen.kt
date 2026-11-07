@@ -1,57 +1,123 @@
 package com.tecsup.smartphones.ui.lista
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tecsup.smartphones.AppContainer
 import com.tecsup.smartphones.domain.model.Item
+import com.tecsup.smartphones.ui.UiState
+import com.tecsup.smartphones.ui.components.Cargando
+import com.tecsup.smartphones.ui.components.ErrorView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListaScreen() {
 
-    val smartphones = smartphonesPrueba
+
+    val factory = remember {
+        ListaViewModelFactory(AppContainer.itemRepository)
+    }
+
+    val listaViewModel: ListaViewModel = viewModel(
+        factory = factory
+    )
+
+
+    val uiState by listaViewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Smartphones",
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("Catálogo de Smartphones")
                 }
             )
         }
-    ) { padding ->
+    ) { innerPadding ->
 
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
+                .padding(innerPadding)
         ) {
 
-            Text(
-                text = "Explora nuestros dispositivos",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
+            when (val estado = uiState) {
 
-            Spacer(modifier = Modifier.height(16.dp))
+                is UiState.Cargando -> {
+                    Cargando()
+                }
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(smartphones) { smartphone ->
-                    SmartphoneCard(smartphone)
+
+                is UiState.Error -> {
+                    ErrorView(
+                        mensaje = estado.mensaje,
+                        onReintentar = {
+                            listaViewModel.cargarSmartphones()
+                        }
+                    )
+                }
+
+
+                is UiState.Exito -> {
+
+                    if (estado.datos.isEmpty()) {
+
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("No se encontraron smartphones")
+                        }
+
+                    } else {
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+
+                            items(
+                                items = estado.datos,
+                                key = { smartphone -> smartphone.id }
+                            ) { smartphone ->
+
+                                SmartphoneCard(
+                                    smartphone = smartphone
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -63,34 +129,34 @@ fun SmartphoneCard(smartphone: Item) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 3.dp
         )
     ) {
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
+            // Imagen provisional del smartphone
             Box(
                 modifier = Modifier
-                    .size(90.dp)
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(12.dp)
-                    ),
+                    .size(85.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "📱",
-                    style = MaterialTheme.typography.displaySmall
+                    fontSize = 38.sp
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -102,12 +168,13 @@ fun SmartphoneCard(smartphone: Item) {
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.size(6.dp))
 
                 Text(
                     text = smartphone.subtitulo,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
