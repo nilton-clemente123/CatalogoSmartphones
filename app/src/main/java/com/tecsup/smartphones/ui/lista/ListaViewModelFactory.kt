@@ -1,12 +1,13 @@
 package com.tecsup.smartphones.ui.lista
 
-
 import ItemRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.tecsup.smartphones.notification.Notificador
 
 class ListaViewModelFactory(
-    private val repository: ItemRepository
+    private val repository: ItemRepository,
+    private val notificador: Notificador
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -15,7 +16,10 @@ class ListaViewModelFactory(
     ): T {
 
         if (modelClass.isAssignableFrom(ListaViewModel::class.java)) {
-            return ListaViewModel(repository) as T
+            return ListaViewModel(
+                repository = repository,
+                notificador = notificador
+            ) as T
         }
 
         throw IllegalArgumentException("ViewModel desconocido")

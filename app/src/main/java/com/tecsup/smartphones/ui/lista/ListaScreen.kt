@@ -1,5 +1,6 @@
 
 package com.tecsup.smartphones.ui.lista
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,10 +30,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,9 +42,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+
 import androidx.navigation.NavController
+
 import com.tecsup.smartphones.AppContainer
 import com.tecsup.smartphones.domain.model.Item
 import com.tecsup.smartphones.ui.UiState
@@ -53,17 +59,24 @@ import com.tecsup.smartphones.ui.components.ErrorView
 fun ListaScreen(
     onSmartphoneClick: (Int) -> Unit,
     navController: NavController,
+    isAdmin: Boolean,
+    onAdminClick: () -> Unit,
     onCerrarSesion: () -> Unit
-){
+) {
 
+    // Factory con las dos dependencias del ViewModel.
     val factory = remember {
-        ListaViewModelFactory(AppContainer.itemRepository)
+        ListaViewModelFactory(
+            repository = AppContainer.itemRepository,
+            notificador = AppContainer.notificador
+        )
     }
 
     val listaViewModel: ListaViewModel = viewModel(
         factory = factory
     )
 
+    // Observar estados del ViewModel.
     val uiState by listaViewModel.uiState.collectAsStateWithLifecycle()
     val aviso by listaViewModel.aviso.collectAsStateWithLifecycle()
 
@@ -71,31 +84,36 @@ fun ListaScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 15.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Catálogo de Smartphones")
+                    Text("Catálogo de Smartphones")
+                },
+                actions = {
 
-                        IconButton(
-                            onClick = {
-                                navController.navigate("favoritos")
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Favorite,
-                                contentDescription = "Ver favoritos"
-                            )
-                        }
-
+                    // Acceso exclusivo para administradores.
+                    if (isAdmin) {
                         TextButton(
-                            onClick = onCerrarSesion
+                            onClick = onAdminClick
                         ) {
-                            Text("Salir")
+                            Text("Admin")
                         }
+                    }
+
+                    // Acceso a favoritos.
+                    IconButton(
+                        onClick = {
+                            navController.navigate("favoritos")
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Ver favoritos"
+                        )
+                    }
+
+                    // Cerrar sesión.
+                    TextButton(
+                        onClick = onCerrarSesion
+                    ) {
+                        Text("Salir")
                     }
                 }
             )
@@ -140,7 +158,7 @@ fun ListaScreen(
                             modifier = Modifier.fillMaxSize()
                         ) {
 
-                            // Aviso cuando no hay conexión
+                            // Aviso cuando no hay conexión.
                             aviso?.let { mensaje ->
 
                                 Card(
@@ -164,7 +182,7 @@ fun ListaScreen(
                                 }
                             }
 
-                            // Lista de smartphones
+                            // Lista de smartphones.
                             LazyColumn(
                                 modifier = Modifier
                                     .weight(1f)
@@ -228,7 +246,7 @@ fun SmartphoneCard(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Imagen provisional del smartphone
+            // Imagen provisional del smartphone.
             Box(
                 modifier = Modifier
                     .size(85.dp)
@@ -262,6 +280,7 @@ fun SmartphoneCard(
                 )
             }
 
+            // Botón de favoritos.
             IconButton(
                 onClick = onFavoritoClick
             ) {

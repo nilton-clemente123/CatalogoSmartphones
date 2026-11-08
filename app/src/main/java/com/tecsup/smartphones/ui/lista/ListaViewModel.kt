@@ -4,7 +4,9 @@ import ItemRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.smartphones.domain.model.Item
+import com.tecsup.smartphones.notification.Notificador
 import com.tecsup.smartphones.ui.UiState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
@@ -13,7 +15,8 @@ import java.io.IOException
 import retrofit2.HttpException
 
 class ListaViewModel(
-    private val repository: ItemRepository
+    private val repository: ItemRepository,
+    private val notificador: Notificador
 ) : ViewModel() {
 
     private val _uiState =
@@ -38,6 +41,7 @@ class ListaViewModel(
             }
         }
 
+        // Sincronización inicial.
         refrescar()
     }
 
@@ -52,38 +56,42 @@ class ListaViewModel(
                 _uiState.value = UiState.Cargando
             }
 
-            // Intentamos actualizar los datos desde DummyJSON.
+            // Consultamos DummyJSON y guardamos en Room.
             val resultado = repository.refrescar()
 
             refrescoTerminado = true
 
-            // Comprobamos si existen datos en Room.
+            // Comprobamos los datos almacenados localmente.
             val cantidadGuardada = repository.cantidadGuardada()
 
             resultado
-                .onSuccess {
+                .onSuccess { cantidad ->
 
                     _aviso.value = null
 
-                    // Si la API devolvió una lista vacía,
-                    // mostramos el estado vacío.
+                    // Mostramos el estado vacío si no hay productos.
                     if (cantidadGuardada == 0) {
                         _uiState.value = UiState.Exito(emptyList())
                     }
+
+                    // Notificación cuando termina la sincronización.
+                    notificador.mostrar(
+                        titulo = "Datos actualizados",
+                        texto = "Se guardaron $cantidad elementos"
+                    )
                 }
                 .onFailure { error ->
 
                     if (cantidadGuardada == 0) {
 
-                        // No tenemos datos locales.
+                        // No existen datos locales.
                         _uiState.value = UiState.Error(
                             mensajeDe(error)
                         )
 
                     } else {
 
-                        // Tenemos datos locales, pero falló la conexión.
-                        // Conservamos la lista de Room.
+                        // Mostramos los datos guardados en Room.
                         _aviso.value = avisoDe(error)
                     }
                 }
@@ -98,9 +106,14 @@ class ListaViewModel(
 
     private fun mensajeDe(error: Throwable): String {
         return when (error) {
-            is IOException -> "No hay conexión a internet."
-            is HttpException -> "Error del servidor: ${error.code()}"
-            else -> "No fue posible cargar los smartphones."
+            is IOException ->
+                "No hay conexión a internet."
+
+            is HttpException ->
+                "Error del servidor: ${error.code()}"
+
+            else ->
+                "No fue posible cargar los smartphones."
         }
     }
 
