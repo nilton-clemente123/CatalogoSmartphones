@@ -19,6 +19,7 @@ class ListaViewModel(
     val uiState = _uiState.asStateFlow()
 
     init {
+        observarSmartphones()
         cargarSmartphones()
     }
 
@@ -30,16 +31,25 @@ class ListaViewModel(
             val resultado = repository.refrescar()
 
             resultado
-                .onSuccess {
-                    val smartphones = repository.items.first()
-
-                    _uiState.value = UiState.Exito(smartphones)
-                }
                 .onFailure { error ->
                     _uiState.value = UiState.Error(
                         error.message ?: "No se pudieron cargar los smartphones"
                     )
                 }
+        }
+    }
+
+    fun alternarFavorito(id: Int) {
+        viewModelScope.launch {
+            repository.alternarFavorito(id)
+        }
+    }
+
+    private fun observarSmartphones() {
+        viewModelScope.launch {
+            repository.items.collect { smartphones ->
+                _uiState.value = UiState.Exito(smartphones)
+            }
         }
     }
 }

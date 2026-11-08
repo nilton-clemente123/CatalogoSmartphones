@@ -15,9 +15,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,16 +40,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.tecsup.smartphones.AppContainer
 import com.tecsup.smartphones.domain.model.Item
 import com.tecsup.smartphones.ui.UiState
 import com.tecsup.smartphones.ui.components.Cargando
 import com.tecsup.smartphones.ui.components.ErrorView
+import com.tecsup.smartphones.ui.lista.SmartphoneCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListaScreen(
-    onSmartphoneClick: (Int) -> Unit) {
+    onSmartphoneClick: (Int) -> Unit,
+    navController: NavController
+    ) {
 
 
     val factory = remember {
@@ -62,7 +71,27 @@ fun ListaScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Catálogo de Smartphones")
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(15.dp,0.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+
+                    ) {
+                        Text("Catálogo de Smartphones")
+
+                        IconButton(
+                            onClick = {
+                                navController.navigate("favoritos")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = "Ver favoritos"
+                            )
+                        }
+                    }
+
                 }
             )
         }
@@ -119,6 +148,10 @@ fun ListaScreen(
                                     smartphone = smartphone,
                                     onClick = {
                                         onSmartphoneClick(smartphone.id)
+                                    },
+                                    esFavorito = smartphone.esFavorito,
+                                    onFavoritoClick = {
+                                        listaViewModel.alternarFavorito(smartphone.id)
                                     }
                                 )
                             }
@@ -133,7 +166,9 @@ fun ListaScreen(
 @Composable
 fun SmartphoneCard(
     smartphone: Item,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onFavoritoClick: () -> Unit,
+    esFavorito: Boolean
     )  {
 
     Card(
@@ -184,6 +219,23 @@ fun SmartphoneCard(
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            IconButton(
+                onClick = onFavoritoClick
+            ) {
+                Icon(
+                    imageVector = if (esFavorito) {
+                        Icons.Default.Favorite
+                    } else {
+                        Icons.Default.FavoriteBorder
+                    },
+                    contentDescription = if (esFavorito) {
+                        "Quitar de favoritos"
+                    } else {
+                        "Agregar a favoritos"
+                    }
                 )
             }
         }
