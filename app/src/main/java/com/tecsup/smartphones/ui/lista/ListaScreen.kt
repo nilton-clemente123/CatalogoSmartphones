@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -51,8 +52,9 @@ import com.tecsup.smartphones.ui.components.ErrorView
 @Composable
 fun ListaScreen(
     onSmartphoneClick: (Int) -> Unit,
-    navController: NavController
-) {
+    navController: NavController,
+    onCerrarSesion: () -> Unit
+){
 
     val factory = remember {
         ListaViewModelFactory(AppContainer.itemRepository)
@@ -87,6 +89,12 @@ fun ListaScreen(
                                 imageVector = Icons.Default.Favorite,
                                 contentDescription = "Ver favoritos"
                             )
+                        }
+
+                        TextButton(
+                            onClick = onCerrarSesion
+                        ) {
+                            Text("Salir")
                         }
                     }
                 }

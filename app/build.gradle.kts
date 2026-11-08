@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.androidx.navigation.compose)

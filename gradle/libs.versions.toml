@@ -16,6 +16,7 @@ room = "2.8.5"
 ksp = "2.2.10-2.0.2"
 firebaseBom = "33.5.1"
 googleServices = "4.5.0"
+coroutinesPlayServices = "1.8.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +46,7 @@ room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutinesPlayServices" }
 
 [plugins]
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
