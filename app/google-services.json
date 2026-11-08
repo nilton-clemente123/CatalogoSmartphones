@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "368654521415",
+    "project_id": "catalogosmartphones",
+    "storage_bucket": "catalogosmartphones.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:368654521415:android:00f1a8fff8e5602b784d62",
+        "android_client_info": {
+          "package_name": "com.tecsup.smartphones"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5e1T0TPXgauFq4D4aPNv0JhHCcPH1WZ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
