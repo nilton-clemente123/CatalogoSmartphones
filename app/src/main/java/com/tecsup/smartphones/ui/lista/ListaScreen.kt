@@ -1,5 +1,5 @@
-package com.tecsup.smartphones.ui.lista
 
+package com.tecsup.smartphones.ui.lista
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,15 +46,13 @@ import com.tecsup.smartphones.domain.model.Item
 import com.tecsup.smartphones.ui.UiState
 import com.tecsup.smartphones.ui.components.Cargando
 import com.tecsup.smartphones.ui.components.ErrorView
-import com.tecsup.smartphones.ui.lista.SmartphoneCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListaScreen(
     onSmartphoneClick: (Int) -> Unit,
     navController: NavController
-    ) {
-
+) {
 
     val factory = remember {
         ListaViewModelFactory(AppContainer.itemRepository)
@@ -64,19 +62,19 @@ fun ListaScreen(
         factory = factory
     )
 
-
     val uiState by listaViewModel.uiState.collectAsStateWithLifecycle()
+    val aviso by listaViewModel.aviso.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(15.dp,0.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 15.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
-
                     ) {
                         Text("Catálogo de Smartphones")
 
@@ -91,7 +89,6 @@ fun ListaScreen(
                             )
                         }
                     }
-
                 }
             )
         }
@@ -109,16 +106,14 @@ fun ListaScreen(
                     Cargando()
                 }
 
-
                 is UiState.Error -> {
                     ErrorView(
                         mensaje = estado.mensaje,
                         onReintentar = {
-                            listaViewModel.cargarSmartphones()
+                            listaViewModel.refrescar()
                         }
                     )
                 }
-
 
                 is UiState.Exito -> {
 
@@ -133,27 +128,61 @@ fun ListaScreen(
 
                     } else {
 
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        Column(
+                            modifier = Modifier.fillMaxSize()
                         ) {
 
-                            items(
-                                items = estado.datos,
-                                key = { smartphone -> smartphone.id }
-                            ) { smartphone ->
+                            // Aviso cuando no hay conexión
+                            aviso?.let { mensaje ->
 
-                                SmartphoneCard(
-                                    smartphone = smartphone,
-                                    onClick = {
-                                        onSmartphoneClick(smartphone.id)
-                                    },
-                                    esFavorito = smartphone.esFavorito,
-                                    onFavoritoClick = {
-                                        listaViewModel.alternarFavorito(smartphone.id)
-                                    }
-                                )
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(
+                                            horizontal = 16.dp,
+                                            vertical = 8.dp
+                                        ),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme
+                                            .colorScheme.errorContainer
+                                    )
+                                ) {
+                                    Text(
+                                        text = mensaje,
+                                        modifier = Modifier.padding(12.dp),
+                                        color = MaterialTheme
+                                            .colorScheme.onErrorContainer
+                                    )
+                                }
+                            }
+
+                            // Lista de smartphones
+                            LazyColumn(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth(),
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+
+                                items(
+                                    items = estado.datos,
+                                    key = { smartphone -> smartphone.id }
+                                ) { smartphone ->
+
+                                    SmartphoneCard(
+                                        smartphone = smartphone,
+                                        onClick = {
+                                            onSmartphoneClick(smartphone.id)
+                                        },
+                                        esFavorito = smartphone.esFavorito,
+                                        onFavoritoClick = {
+                                            listaViewModel.alternarFavorito(
+                                                smartphone.id
+                                            )
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -169,10 +198,14 @@ fun SmartphoneCard(
     onClick: () -> Unit,
     onFavoritoClick: () -> Unit,
     esFavorito: Boolean
-    )  {
+) {
 
     Card(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 3.dp
@@ -200,7 +233,6 @@ fun SmartphoneCard(
                     fontSize = 38.sp
                 )
             }
-
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -235,6 +267,11 @@ fun SmartphoneCard(
                         "Quitar de favoritos"
                     } else {
                         "Agregar a favoritos"
+                    },
+                    tint = if (esFavorito) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
                     }
                 )
             }
