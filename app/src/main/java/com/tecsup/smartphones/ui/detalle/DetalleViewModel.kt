@@ -1,10 +1,9 @@
 package com.tecsup.smartphones.ui.detalle
-import ItemRepository
+import com.tecsup.smartphones.data.repository.ItemRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.smartphones.domain.model.Item
 import com.tecsup.smartphones.ui.UiState
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -39,6 +38,23 @@ class DetalleViewModel(
                         error.message ?: "No se pudo cargar el smartphone"
                     )
                 }
+        }
+    }
+
+    fun alternarFavorito() {
+
+        val smartphone = (_uiState.value as? UiState.Exito)?.datos
+            ?: return
+
+        viewModelScope.launch {
+
+            repository.alternarFavorito(smartphone.id)
+
+            _uiState.value = UiState.Exito(
+                smartphone.copy(
+                    esFavorito = !smartphone.esFavorito
+                )
+            )
         }
     }
 }

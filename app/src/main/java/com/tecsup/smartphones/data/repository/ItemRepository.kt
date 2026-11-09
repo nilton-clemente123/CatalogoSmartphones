@@ -1,6 +1,7 @@
+package com.tecsup.smartphones.data.repository
+
 import com.tecsup.smartphones.domain.model.Item
 import kotlinx.coroutines.flow.Flow
-
 
 interface ItemRepository {
 

@@ -41,6 +41,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)

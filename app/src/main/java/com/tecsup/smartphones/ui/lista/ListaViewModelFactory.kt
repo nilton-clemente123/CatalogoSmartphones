@@ -1,6 +1,6 @@
 package com.tecsup.smartphones.ui.lista
 
-import ItemRepository
+import com.tecsup.smartphones.data.repository.ItemRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.tecsup.smartphones.notification.Notificador

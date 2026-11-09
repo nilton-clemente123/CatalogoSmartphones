@@ -1,6 +1,5 @@
 package com.tecsup.smartphones.data.repository
 
-import ItemRepository
 import com.tecsup.smartphones.data.local.ItemDao
 import com.tecsup.smartphones.data.mapper.toDomain
 import com.tecsup.smartphones.data.mapper.toEntity

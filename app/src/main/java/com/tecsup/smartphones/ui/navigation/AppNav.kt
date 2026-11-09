@@ -200,7 +200,8 @@ private fun CatalogoNavHost(
         composable("favoritos") {
 
             FavoritosScreen(
-                navController = navController
+                navController = navController,
+                isAdmin = sesion.rol == Rol.ADMIN
             )
         }
 
@@ -210,6 +211,7 @@ private fun CatalogoNavHost(
             composable("admin") {
 
                 AdminScreen(
+                    navController = navController,
                     onVolver = {
                         navController.popBackStack()
                     }

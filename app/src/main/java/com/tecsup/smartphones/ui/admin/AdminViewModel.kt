@@ -1,7 +1,7 @@
 package com.tecsup.smartphones.ui.admin
 
 
-import ItemRepository
+import com.tecsup.smartphones.data.repository.ItemRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.smartphones.notification.Notificador

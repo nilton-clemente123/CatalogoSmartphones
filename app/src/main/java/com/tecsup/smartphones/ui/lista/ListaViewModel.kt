@@ -1,15 +1,13 @@
 package com.tecsup.smartphones.ui.lista
 
-import ItemRepository
+import com.tecsup.smartphones.data.repository.ItemRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.smartphones.domain.model.Item
 import com.tecsup.smartphones.notification.Notificador
 import com.tecsup.smartphones.ui.UiState
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.io.IOException
 import retrofit2.HttpException

@@ -1,7 +1,7 @@
 
 package com.tecsup.smartphones
 
-import ItemRepository
+import com.tecsup.smartphones.data.repository.ItemRepository
 import android.content.Context
 import androidx.room.Room
 
