@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.tecsup.smartphones.domain.model.Item
 import com.tecsup.smartphones.notification.Notificador
 import com.tecsup.smartphones.ui.UiState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -27,6 +28,7 @@ class ListaViewModel(
     val aviso = _aviso.asStateFlow()
 
     private var refrescoTerminado = false
+    private var refrescoJob: Job? = null
 
     init {
         // Observamos continuamente los datos de Room.
@@ -44,7 +46,10 @@ class ListaViewModel(
     }
 
     fun refrescar() {
-        viewModelScope.launch {
+        // Ignoramos las solicitudes repetidas mientras la sincronización sigue activa.
+        if (refrescoJob?.isActive == true) return
+
+        refrescoJob = viewModelScope.launch {
 
             refrescoTerminado = false
             _aviso.value = null

@@ -170,6 +170,38 @@ class ListaViewModelTest {
         )
     }
 
+    @Test
+    fun ignoraRefrescosSimultaneosYPermiteSincronizarAlTerminar() = runTest {
+        val respuesta = CompletableDeferred<Result<List<Item>>>()
+        val repository = FakeItemRepository().apply {
+            alRefrescar = { respuesta.await() }
+        }
+        val viewModel = crearViewModel(repository)
+
+        // Incluso antes de ejecutar la corrutina inicial, no debe duplicarse el trabajo.
+        viewModel.refrescar()
+        viewModel.refrescar()
+        runCurrent()
+        assertEquals(1, repository.llamadasARefrescar)
+
+        // Tampoco se duplica mientras la petición está suspendida.
+        viewModel.refrescar()
+        runCurrent()
+        assertEquals(1, repository.llamadasARefrescar)
+
+        respuesta.complete(Result.success(listOf(smartphone)))
+        advanceUntilIdle()
+        assertEquals(1, notificador.notificaciones.size)
+
+        repository.alRefrescar = { Result.success(listOf(smartphone)) }
+        viewModel.refrescar()
+        advanceUntilIdle()
+
+        assertEquals(2, repository.llamadasARefrescar)
+        assertEquals(2, notificador.notificaciones.size)
+        assertEquals(UiState.Exito(listOf(smartphone)), viewModel.uiState.value)
+    }
+
     private fun crearViewModel(repository: FakeItemRepository): ListaViewModel {
         return ListaViewModel(repository, notificador).also { viewModel ->
             viewModelStore.put("lista", viewModel)
