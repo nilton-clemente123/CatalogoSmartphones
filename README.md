@@ -301,7 +301,46 @@ Guardar las imágenes dentro de `docs/capturas/`.
 
 ## 10. Pruebas realizadas
 
-Se deben verificar los siguientes escenarios:
+### Pruebas unitarias automatizadas
+
+La rama `mejora-ia` agrega 9 pruebas de `ListaViewModel` con JUnit y
+`kotlinx-coroutines-test`. Se usan un repositorio falso, un notificador falso y
+una regla que sustituye `Dispatchers.Main` por un dispatcher de prueba. No
+requieren un emulador, acceso a DummyJSON ni usuarios de Firebase; para compilar
+el proyecto se debe configurar el archivo local de Firebase indicado en la sección 7.2.
+
+Los casos cubiertos son:
+
+1. Mantener `Cargando` mientras termina la primera sincronización.
+2. Publicar el catálogo sincronizado y notificar la cantidad guardada.
+3. Mostrar una lista vacía cuando la sincronización no devuelve productos.
+4. Mostrar un error de conexión cuando no existen datos locales, sin notificar éxito.
+5. Conservar los datos locales y mostrar un aviso sin conexión, sin notificar éxito.
+6. Mostrar el código HTTP del servidor cuando la carga falla sin datos locales.
+7. Recuperarse de un error mediante Reintentar.
+8. Delegar el cambio de favorito al repositorio y observar la lista actualizada.
+9. Ignorar sincronizaciones simultáneas y permitir una nueva al terminar.
+
+Ejecutar desde la raíz del proyecto:
+
+```bash
+./gradlew :app:testDebugUnitTest
+./gradlew :app:assembleDebug
+```
+
+Resultados verificados el **11 de noviembre de 2026**: 9 pruebas de
+`ListaViewModel` y la prueba de ejemplo existente aprobadas, sin fallos ni
+pruebas omitidas; compilación de depuración correcta, también después de ejecutar
+`./gradlew clean :app:testDebugUnitTest :app:assembleDebug`.
+
+El informe HTML se genera en
+`app/build/reports/tests/testDebugUnitTest/index.html` y el APK en
+`app/build/outputs/apk/debug/app-debug.apk`.
+
+### Verificación manual pendiente
+
+Las pruebas unitarias no validan Firebase, Room real, permisos del sistema ni
+navegación. Se deben verificar en emulador o dispositivo los siguientes escenarios:
 
 - Inicio de sesión con administrador y usuario normal.
 - Validación de credenciales incorrectas.
@@ -320,6 +359,23 @@ Se deben verificar los siguientes escenarios:
 Proyecto desarrollado individualmente como parte del curso **Programación en Móviles**, correspondiente a la carrera de Diseño y Desarrollo de Software de TECSUP.
 
 Las actividades incluyeron el diseño de la arquitectura, implementación de la interfaz, consumo de API, persistencia local, autenticación, control de roles y notificaciones.
+
+### Fase 2: mejora asistida por IA
+
+En la rama `mejora-ia` se incorporan pruebas del ViewModel y una protección para
+evitar que llamadas repetidas a `refrescar()` inicien sincronizaciones simultáneas.
+La protección conserva el `Job` activo; al finalizar, se permite sincronizar de nuevo.
+No se cambia Room como fuente de verdad ni se introducen dependencias de Android
+en el ViewModel.
+
+Las consultas reales, decisiones, resultados y reflexión están en `PROMPTS.md`.
+También se retira `google-services.json` del seguimiento de Git sin borrar la
+copia local. Esta exclusión no elimina el archivo de los commits anteriores;
+no se reescribe el historial.
+
+La publicación de la rama, el Pull Request hacia `main`, las capturas reales y la
+versión `v1.0` con su APK quedan pendientes de la entrega. Las pruebas de esta fase
+no sustituyen las 14 pruebas de aceptación del laboratorio.
 
 ## 12. Autor
 
